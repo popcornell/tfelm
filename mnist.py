@@ -25,7 +25,7 @@ mnist_metadata_test_path = os.path.join(embeddings_path, 'mnist_metadata_test.ts
 def main():  # testing purpose only
 
     #imports here because only for testing
-
+    import tensorflow as tf
     import numpy as np
     from tensorflow.contrib.tensorboard.plugins import projector
 
@@ -80,6 +80,13 @@ def main():  # testing purpose only
                            config = config
                            )
 
+    ## send to tensorboard
+    sess = tf.Session()
+
+    sess.run(tf.global_variables_initializer())
+    saver = tf.train.Saver()
+    saver.save(sess, os.path.join(LOG_DIR, "model.ckpt"), 1)
+
 
     print("Check projection on tensorboard:")
 
@@ -89,7 +96,7 @@ def main():  # testing purpose only
     """
     os.system('killall tensorboard')
     os.system('fuser 6006/tcp -k')  # free default tensorboard port
-    os.system('tensorboard --logdir=%s' % LOGDIR)
+    os.system('tensorboard --logdir=%s' % LOG_DIR)
     """
 
 if __name__ == '__main__':
