@@ -15,12 +15,18 @@ mnist_metadata_path = os.path.join(embeddings_path, 'mnist_metadata.tsv')
 
 def main():  # testing purpose only
 
-    import tensorflow as tf
+    #imports here because only for testing
 
+    import tensorflow as tf
+    import numpy as np
+
+    # take n istances to visualize in tboard projector
+    x, y = mnist.train.next_batch(500)
+
+    print("first image label is:")
+    print(np.argmax(y[0]))
 
     # visualize mnist data in tensorboard projector
-    x, y = mnist.train.next_batch(500)
-    # 1000 istances
 
     # create image metadata
     create_image_embedding_metadata(input_data=x,

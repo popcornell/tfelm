@@ -50,7 +50,7 @@ def create_image_embedding_metadata(input_data, labels, embedding_metadata_path,
     with open(embedding_metadata_path, 'w') as f:
         f.write("Index\tLabel\n")
         for index, label in enumerate(labels):
-            f.write("%d\t%d\n" % (index, np.argmax(labels)))
+            f.write("%d\t%d\n" % (index, np.argmax(labels[index])))
 
     to_visualise = input_data
     to_visualise = vector_to_matrix_mnist(to_visualise)
