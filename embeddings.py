@@ -27,11 +27,14 @@ def create_sprite_image(images):
     return spriteimage
 
 
-def create_image_embedding(name, input_data, embedding_dir, metadata_path, sprites_path, image_shape):
+def create_image_embedding(name, input_data, embedding_dir, metadata_path, sprites_path, image_shape, config):
+
     embedding_var = Variable(input_data, name=name)
 
+    # projector config should be called in top module or parent function
+    # otherwise it will be overwritten and only the embedding relative with the last call
+    # will be displayed
 
-    config = projector.ProjectorConfig()
     embedding = config.embeddings.add()
     embedding.tensor_name = embedding_var.name
 
@@ -45,7 +48,7 @@ def create_image_embedding(name, input_data, embedding_dir, metadata_path, sprit
     projector.visualize_embeddings(writer, config)
 
 
-def create_image_embedding_metadata(input_data, labels, embedding_metadata_path, sprites_path):
+def create_image_embedding_metadata(input_data, labels, embedding_metadata_path, sprites_path ):
 
     with open(embedding_metadata_path, 'w') as f:
         f.write("Index\tLabel\n")
