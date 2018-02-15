@@ -100,7 +100,7 @@ def main(): # testing purpose only
     x = tf.placeholder(tf.float32, shape=[None, input_size], name="x")
 
     with tf.name_scope("elm_layer"):
-         elm_layer=layer(x, input_size, output_size,
+         elm_layer= nn_layer(x, input_size, output_size,
                          name='elm1',
                          trainable=False,
                          act=tf.nn.sigmoid,
@@ -108,7 +108,7 @@ def main(): # testing purpose only
                          )
 
     with tf.name_scope("nn_layer"):
-          nn_layer=layer(x, input_size, output_size,
+          dense_layer= nn_layer(x, input_size, output_size,
                          name='nn1',
                          trainable=True,
                          act=tf.nn.sigmoid
