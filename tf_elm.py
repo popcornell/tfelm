@@ -43,8 +43,8 @@ def variable_summaries(var):
         tf.summary.histogram('histogram', var)
 
 
-def layer(input_tensor, input_dim, output_dim, name,
-           trainable,
+def nn_layer(input_tensor, input_dim, output_dim, name,
+           trainable = True,
            act=tf.nn.relu,
            winit = (tf.random_normal,1),
            binit= (tf.constant,0.1)
@@ -68,6 +68,24 @@ def layer(input_tensor, input_dim, output_dim, name,
         tf.summary.histogram(activation_name, activations)
     return activations
 
+
+def output_layer(input_tensor, input_dim, output_dim, name,
+                  trainable = True,
+                 winit = (tf.random_normal,1)
+                ):
+
+    """for output layer set act=tf.identity and binit=(tf.constant,0)
+    """
+    with tf.name_scope(name):
+
+        with tf.name_scope('weights'):
+            weights = weight_tensor([input_dim, output_dim], winit, trainable)
+            variable_summaries(weights)
+        with tf.name_scope('Wx_plus_b'):
+            preactivate = tf.matmul(input_tensor, weights)
+            tf.summary.histogram('pre_activations', preactivate)
+
+    return preactivate
 
 def main(): # testing purpose only
 
