@@ -64,7 +64,6 @@ def create_image_embedding_metadata(input_data, labels, embedding_metadata_path,
     imsave(sprites_path, sprite_image, cmap='gray')
 
 
-
 def vector_to_matrix_mnist(mnist_digits):
     """Reshapes normal mnist digit (batch,28*28) to matrix (batch,28,28)"""
     return np.reshape(mnist_digits, (-1, 28, 28))
