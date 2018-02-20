@@ -25,7 +25,7 @@ def weight_tensor(shape, winit, trainable=True):
         binit (tuple): first value specify the distribution
                        second value specifies stddev of distribution.
         """
-    weights = winit[0](shape, stddev=winit[1])
+    weights =  winit[0](shape, stddev=winit[1])
     return tf.Variable(weights, trainable)
 
 
@@ -74,7 +74,7 @@ def output_layer(input_tensor, input_dim, output_dim, name,
                  winit = (tf.random_normal,1)
                 ):
 
-    """for output layer set act=tf.identity and binit=(tf.constant,0)
+    """for output layer with bias create a nn_layer with sact=tf.identity
     """
     with tf.name_scope(name):
 

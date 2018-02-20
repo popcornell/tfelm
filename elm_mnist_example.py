@@ -1,143 +1,67 @@
 import tensorflow as tf
-import os
 import itertools
 
 # mnist data
-from mnist import mnist,LOG_DIR
-from mnist import mnist_sprites_test_path,mnist_metadata_test_path
-from mnist import mnist_sprites_train_path,mnist_metadata_train_path
+from mnist_load import mnist,LOG_DIR
+from mnist_load import mnist_sprites_test_path,mnist_metadata_test_path
+from mnist_load import mnist_sprites_train_path,mnist_metadata_train_path
 
-# elm/nn layer definition
-from tf_elm import nn_layer,output_layer
+# import models
+from tfelm.networks import slfn
+
+# for embeddings in tensorboard
+from utilities.embeddings import create_image_embedding_metadata
 
 
-# for embeddings
-from embeddings import create_image_embedding_metadata
-from tensorflow.contrib.tensorboard.plugins import projector
+# training
+from tfelm.training import k_fold_training,validation_training
 
-# globals
+# GLOBALS
 input_size = 784
 output_size = 10
 
+# global variable to track number of runs
 run_var = 0
 
+##################
+# HYPERPARAMETERS
+##################
 
-# standard initialization
+# WEIGHTS AND BIASES INIT
+winit = (tf.random_normal, (6/(input_size+output_size))**0.5)
+binit = winit
 
-binit = (tf.random_normal, 3*(1/input_size)**0.5)
-winit = binit # same for biases and weights
+# hyperparameters dictionary
 
-hyperpar = {'lr': [1E-2],
-            'hidd': [1000,500], # number of hidden layers
+# it is passed both to the training defined in training.py and to the model defined in networks.py
+# All possible combinations of hyperparameters will be evaluated. The hyperparametrs should be contained in a list
+
+# The optim hyperparameter which refers to the optimizer which will be used in the training phase, should be
+# written as a tuple, the first argument is the name of the optimizer, the second is a list used to pass arguments to the
+# optimizer function. Arguments are passed by position. E.G. in the code below, 1E-2 refers to the learning rate as
+# the first arg of tf.train.AdamOptimizer is the learning rate.
+
+# The winit and binit hyperparameters should be written also as a tuple. The first argument is the distribution,
+# the second is the stddev. It is possible also to have a tf.constant and as a second argument a float with the value
+# of the constant
+
+hyperpar = {'optim':[(tf.train.AdamOptimizer, [1E-2] )],  # second tuple arg should be an iterable e.g. a list
+            'hidd': [500,1000], # number of hidden layers
             'TR' : [False,True], # trainable hidden layer: False for ELM layer
             'winit': [winit], # hidden layer weight initialization
             'binit': [binit], # hidden layer bias initialization
-            'nstep': [2000], # number of training steps
-            'act' : [tf.nn.leaky_relu],
-            #'e_stop': [False], # use early stopping #TODO
+            'act' : [tf.nn.sigmoid], # activation for hidden layer
+            'estop': [20], # use early stopping (np.infinity or very large number if not required)
+            'epo':[200], # number of Epochs
             'bsize' : [100], # batch size
-            #'cr_val': [0] # use cross-validation 0 is false #TODO
+            'cr_val': [1], # use cross-validation 1 or 0 for validation set only training
+            'model': [slfn] # model selection
+
            }
 
 
-def slfn_model(input_size, output_size, hparams):
-
-    # TODO regularization
-
-    hidden_layer_size = hparams['hidd']
-    assert hidden_layer_size > 0, "The size of hidden layer must be greater than 0"
-
-    learning_rate = hparams['lr']
-    trainable = hparams['TR']
-    n_steps = hparams['nstep']
-    batch_size = hparams['bsize']
-
-
-    tf.reset_default_graph() # reset graph
-    sess = tf.Session()
-
-    x = tf.placeholder(tf.float32, shape=[None, input_size], name="x")
-    y_ = tf.placeholder(tf.float32, shape=[None, output_size], name="labels")
-
-    # for tensorboard visualization, 1 for Grayscale this in load mnist
-    x_image = tf.reshape(x, [-1, 28, 28, 1])
-    tf.summary.image('input', x_image, 3)
-
-
-    # create hidden layer
-    hidden = nn_layer(x, input_size, hidden_layer_size, name='elm',
-                   trainable=trainable,
-                   act=hparams['act'],
-                   winit=hparams['winit'],
-                   binit=hparams['binit']
-                   )
-
-    # output layer
-    logits = output_layer(hidden, hidden_layer_size, output_size,
-                           name='output'
-                          )
-
-    with tf.name_scope("cross_entropy"):
-        cross_entropy = tf.reduce_mean(
-            tf.nn.softmax_cross_entropy_with_logits(
-                logits=logits, labels=y_), name="cross_entropy")
-    tf.summary.scalar("cross_entropy", cross_entropy)
-
-    with tf.name_scope("train"):
-        train_step = tf.train.AdamOptimizer(learning_rate).minimize(cross_entropy)
-
-    with tf.name_scope("accuracy"):
-        correct_prediction = tf.equal(tf.argmax(logits, 1), tf.argmax(y_, 1))
-        accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
-
-    tf.summary.scalar("accuracy", accuracy)
-
-    hparams_str = '/Run_%d' % (run_var)
-
-    # embeddings for training visualization
-    summ = tf.summary.merge_all()
-    embedding_input = tf.reshape(x, [-1,input_size])
-    embedding = tf.Variable(tf.zeros([hidden_layer_size, input_size]), name="test_run_%d" % (run_var))
-    assignment = embedding.assign(embedding_input)
-    saver = tf.train.Saver()
-
-    sess.run(tf.global_variables_initializer())
-
-    writer = tf.summary.FileWriter(LOG_DIR + hparams_str)
-    writer.add_graph(sess.graph)
-
-    # print to txt file current hyperparameters for convenience
-    with open(LOG_DIR + hparams_str+"/hyperparam.txt", "w") as text_file:
-         print(hparams, file=text_file)
-
-
-    # setup config for  tensorboard projector
-    config = projector.ProjectorConfig()
-    embedding_config = config.embeddings.add()
-    embedding_config.tensor_name = embedding.name
-    embedding_config.sprite.image_path =  mnist_sprites_test_path
-    embedding_config.metadata_path =  mnist_metadata_test_path
-
-    # Specify the width and height of a single thumbnail.
-    embedding_config.sprite.single_image_dim.extend([28, 28])
-    tf.contrib.tensorboard.plugins.projector.visualize_embeddings(writer, config)
-
-    # TODO better training section, still it is enough to get insight into ELMs and compare them to MLPs
-
-    for i in range(n_steps):
-        batch = mnist.train.next_batch(batch_size)
-        if i % 5 == 0:
-            [train_accuracy, s] = sess.run([accuracy, summ], feed_dict={x: batch[0], y_: batch[1]})
-            writer.add_summary(s, i)
-        if i % 500 == 0:
-            print("Train Accuracy on train set at step %d is: %.2f" % (i, train_accuracy))
-            sess.run(assignment, feed_dict={x: mnist.test.images[:hidden_layer_size],
-                                             y_: mnist.test.labels[:hidden_layer_size]})
-            saver.save(sess, os.path.join(LOG_DIR + hparams_str, "model.ckpt"), i)
-        sess.run(train_step, feed_dict={x: batch[0], y_: batch[1]})
-
-
 def embeddings_init(max_hidden_size):
+
     # create mnist metadata and sprites
     # metadata and sprites should be greater than hidden layer size
     # this is because we want to be able to visualize mnist data in the hidden layer space
@@ -169,31 +93,58 @@ def embeddings_init(max_hidden_size):
                                     sprites_path=mnist_sprites_test_path
                                     )
 
-
-
 def main():
-
 
         max_hidden_layer_size = max(hyperpar['hidd'])
 
         # create embeddings metadata
         embeddings_init(max_hidden_layer_size)
 
+        global run_var
 
         # generate every possible combination of hyperparameters
         keys, values = zip(*hyperpar.items())
 
-        global run_var
-
         for v in itertools.product(*values):
             comb = dict(zip(keys, v))
 
-            print("Run: %d" % (run_var))
+            print("Run: %d" % (run_var)) # Run number
             print("Training with hyperparameter set:")
             print(comb)
 
-            slfn_model(input_size, output_size, hparams=comb)
-            run_var = run_var+1
+            k = int(comb['cr_val'])
+            if k > 1:  # cross eval:
+
+                k_fold_training(k, mnist.train.images, mnist.train.labels,
+                                mnist.test.images, mnist.test.labels,
+                                log_dir=LOG_DIR,
+                                hpar_comb=comb,
+                                input_size=784,
+                                output_size=10,
+                                name = 'Run_%d' % run_var,
+                                emb_metadata_path = mnist_metadata_test_path,
+                                sprites_meta_path=mnist_sprites_test_path,
+                                check_interval=100
+                                )
+
+            else: # use mnist validation set
+
+                validation_training(mnist.train,
+                                    mnist.validation.images,mnist.validation.labels,
+                                    mnist.test.images, mnist.test.labels,
+                                    log_dir=LOG_DIR,
+                                    hpar_comb=comb,
+                                    input_size=784,
+                                    output_size=10,
+                                    name='run_%d' % run_var,
+                                    emb_metadata_path=mnist_metadata_test_path,
+                                    sprites_meta_path=mnist_sprites_test_path,
+                                    check_interval=100
+                                   )
+
+            print("RUN number %d COMPLETED\n\n" % run_var)
+
+            run_var +=  1  # next run
 
         print('tensorboard --logdir=%s' % LOG_DIR)
 
@@ -204,10 +155,7 @@ def main():
         os.system('tensorboard --logdir=%s' % LOG_DIR)
         """
 
+
 if __name__ == '__main__':
         main()
-
-
-
-
 

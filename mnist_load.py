@@ -1,8 +1,8 @@
 import os
 from tensorflow.contrib.learn import datasets
-from embeddings import create_image_embedding, create_image_embedding_metadata
+from utilities.embeddings import create_image_embedding, create_image_embedding_metadata
 
-LOG_DIR = os.path.join(os.getcwd(), "MNIST_LOG")
+LOG_DIR = os.path.join(os.getcwd(), "mnist_log")
 
 mnist = datasets.mnist.read_data_sets("MNIST_data/", one_hot=True)
 
@@ -30,7 +30,8 @@ def main():  # testing purpose only
     from tensorflow.contrib.tensorboard.plugins import projector
 
     # take n istances from training set to be visualized in tboard projector
-    x, y = mnist.train.next_batch(500)
+    x = mnist.train.images[:500]
+    y = mnist.train.labels[:500]
 
     print("first image label for training set is:")
     print(np.argmax(y[0]))
@@ -55,7 +56,9 @@ def main():  # testing purpose only
                                           )
 
     # take n istances from training set to be visualized in tboard projector
-    x, y = mnist.test.next_batch(500)
+
+    x = mnist.test.images[:500]
+    y = mnist.test.labels[:500]
 
     print("first image label for test set is:")
     print(np.argmax(y[0]))
