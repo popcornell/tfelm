@@ -190,7 +190,7 @@ class ELM(Fdnn):
             except tf.errors.OutOfRangeError:
                 break
 
-        return np.reshape(np.asarray(y_out), (x.shape[0], self.y_out.shape.as_list()[1]))
+        return np.asarray(y_out)
 
     def reset(self):
 
