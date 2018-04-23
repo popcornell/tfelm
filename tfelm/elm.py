@@ -185,7 +185,7 @@ class ELM(Fdnn):
         while True:
             try:
                 x_batch = self.sess.run(next_batch)
-                y_out.append(self.sess.run(self.y_out, feed_dict={self.x: x_batch}))
+                y_out.extend(self.sess.run(self.y_out, feed_dict={self.x: x_batch}))
 
             except tf.errors.OutOfRangeError:
                 break
@@ -247,7 +247,7 @@ def main():
 
     # pre-processing pipeline
 
-    elm1 = elm(input_size=input_size, output_size=output_size, l2norm=10)
+    elm1 = ELM(input_size=input_size, output_size=output_size, l2norm=10)
     elm1.add_layer(1, activation=tf.sigmoid)
     elm1.compile()
 
@@ -282,14 +282,14 @@ def main():
 
     elm1.train(iterator, n_batches=n_epochs * (len(x_train) // batch_size))
     elm1.evaluate(x_test, y_test, batch_size=1000)
-    pred = elm1.predict(x_test, batch_size=1000)
+    pred = elm1.predict(x_test, batch_size=1024)
     acc = accuracy_score(y_test.argmax(1), pred.argmax(1))
     print("Test Accuracy with scikit:", acc)
 
     elm1.save(ckpt_path=os.getcwd() + '/elm')
     tf.reset_default_graph()
     del elm1
-    elm1 = elm(input_size=input_size, output_size=output_size, l2norm=10, name='elm')
+    elm1 = ELM(input_size=input_size, output_size=output_size, l2norm=10, name='elm')
 
     # load has to be fixed
     # elm1.load(ckpt_path=os.getcwd()+ '/elm')
