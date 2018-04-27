@@ -9,7 +9,7 @@ that for some researchers are strongly based, or even a rip-off, of prior works 
 random projections.
 
 Academic allegations aside, these learning methods due to the fact that are trainable with
-almost negligible hardware and time resources are worth investigating.
+almost negligible hardware and time resources these networks deserve to be studied.
 
 In fact, in some contexts, their performance can be comparable to classical Multi Layer Perceptron Networks with the advantage of mantaining negligible training resources.
 
