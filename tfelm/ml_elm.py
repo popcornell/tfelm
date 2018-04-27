@@ -40,17 +40,11 @@ class ML_ELM(ELM):
         with tf.name_scope("autoenc_of_" + self.name + ("_n_%d" % layer)):
             if self.w_initializer[layer] is 'default' or self.b_initializer[layer] is 'default':
                 init_w = tf.random_normal(shape=[self.n_neurons[layer], self.n_neurons[layer + 1]],
-                                          stddev=tf.sqrt(tf.div(2.,
-                                                                tf.add(tf.cast(self.n_neurons[layer - 1], 'float32'),
-                                                                       tf.cast(self.n_neurons[layer + 1], 'float32')))))
+                                          stddev=tf.sqrt(tf.div(2., tf.cast(self.n_neurons[layer - 1], 'float32'))))
 
                 if self.b_initializer[layer] is not None:
                     init_b = tf.random_normal(shape=[self.n_neurons[layer + 1]],
-                                              stddev=tf.sqrt(tf.div(2.,
-                                                                    tf.add(
-                                                                        tf.cast(self.n_neurons[layer - 1], 'float32'),
-                                                                        tf.cast(self.n_neurons[layer + 1],
-                                                                                'float32')))))
+                                              stddev=tf.sqrt(tf.div(2., tf.cast(self.n_neurons[layer - 1], 'float32'))))
 
                     self.Hb.append(tf.Variable(init_b, trainable=False))
                 else:
@@ -247,20 +241,12 @@ class ML_ELM(ELM):
             if self.w_initializer[-1] is 'default' or self.b_initializer[-1] is 'default':
 
                 init_w = tf.random_normal(shape=[self.n_neurons[-3], self.n_neurons[-2]],
-                                          stddev=tf.sqrt(tf.div(2.,
-                                                                tf.add(tf.cast(self.n_neurons[-3], 'float32'),
-                                                                       tf.cast(self.n_neurons[-1], 'float32')))))
-                '''
-                init_w = tf.glorot_normal_initializer()
-                '''
+                                          stddev=tf.sqrt(tf.div(2., tf.cast(self.n_neurons[-3], 'float32'))))
 
                 if self.b_initializer[-1] is not None:
 
                     init_b = tf.random_normal(shape=[self.n_neurons[-2]],
-                                              stddev=tf.sqrt(tf.div(2.,
-                                                                    tf.add(tf.cast(self.n_neurons[-3], 'float32'),
-                                                                           tf.cast(self.n_neurons[-1],
-                                                                                   'float32')))))
+                                              stddev=tf.sqrt(tf.div(2., tf.cast(self.n_neurons[-3], 'float32'))))
 
                     self.Hb.append(tf.Variable(init_b, trainable=False))
                 else:
@@ -339,7 +325,6 @@ class ML_ELM(ELM):
                                                                       ((time.time() - t0) % 3600 % 60)))
         print("#" * 100)
 
-
     def fit(self, x, y, batch_size=1024):
 
         assert self.n_hidden_layer > 1, "Before compiling the network at least two hidden layers should be created"
@@ -351,7 +336,7 @@ class ML_ELM(ELM):
 
         iterator_init_op = lambda: self.sess.run(iterator.initializer, feed_dict={self.x: x, self.y: y})
 
-        self.train(iterator,iterator_init_op,nb)
+        self.train(iterator, iterator_init_op, nb)
 
         iterator_init_op()
 
@@ -365,110 +350,3 @@ class ML_ELM(ELM):
         return train_perf
 
 
-def main():
-    import keras
-    import os
-    from keras.preprocessing.image import ImageDataGenerator
-    from sklearn.metrics import accuracy_score
-
-    mnist = keras.datasets.mnist
-    train, test = mnist.load_data(os.getcwd() + "/elm_tf_test" + "mnist.txt")
-    x_train, y_train = train
-    x_test, y_test = test
-    del train, test
-    y_train = keras.utils.to_categorical(y_train, num_classes=10)
-    y_test = keras.utils.to_categorical(y_test, num_classes=10)
-    x_train = x_train.reshape(-1, 28, 28, 1)
-    x_test = x_test.reshape(-1, 28 * 28)
-
-    input_size = 784
-    output_size = 10
-
-    batch_size = 1024
-    n_epochs = 1
-
-    datagen = ImageDataGenerator(
-        # rotation_range=1,
-        # width_shift_range=0.05,
-        # height_shift_range=0.05
-    )
-
-    datagen.fit(x_train)
-
-    def gen():
-        n_it = 0
-        batches_per_epochs = len(x_train) // batch_size
-        for x, y in datagen.flow(x_train, y_train, batch_size=batch_size):
-            x = x.reshape(batch_size, 28 * 28)
-            if n_it % 100 == 0:
-                print("generator iteration: %d" % n_it)
-            yield x, y
-            n_it += 1
-            if n_it >= batches_per_epochs * n_epochs:
-                break
-
-    data = tf.data.Dataset.from_generator(generator=gen,
-                                          output_shapes=((batch_size, 28 * 28,), (batch_size, 10,)),
-                                          output_types=(tf.float32, tf.float32))
-
-    iterator = data.make_initializable_iterator()
-
-    # Parameters
-    input_size = 28 * 28
-    output_size = 10
-
-    # https://www.wolframalpha.com/input/?i=plot+sign(x)*((k*abs(x)))%2F(k-a*abs(x)%2B1),+x%3D-255..255,++k%3D-100,+a%3D1
-    def tunable_sigm(t):
-        k = -130.
-        a = 1.
-        half = tf.div(tf.multiply(k, tf.abs(t)), tf.add(1., tf.add(k, -a * tf.abs(t))))
-        return tf.multiply(tf.sign(t), half)
-
-    init_w = tf.Variable(tf.truncated_normal(stddev=0.5, shape=[input_size, 700]))
-    init_b = tf.Variable(tf.truncated_normal(stddev=0.5, shape=[700]))
-    init_w2 = tf.Variable(tf.truncated_normal(stddev=0.5, shape=[700, 700]))
-    # def sigm_zero_mean(x):
-    #   return tf.subtract(1., tf.sigmoid(x))
-    # def dual_relu(x):
-    #   return tf.sign(x)*tf.nn.relu(x)
-    # , savedir=(os.getcwd() + "/ml_elm")
-
-    n_batches = n_epochs * (len(x_train) // batch_size)
-
-    ml_elm1 = ML_ELM(input_size, output_size)
-    ml_elm1.add_layer(4000, activation=tf.tanh)
-    ml_elm1.add_layer(4000, activation=tf.tanh)
-    ml_elm1.add_layer(4000, activation=tf.tanh)
-    iterator_init_op = lambda: ml_elm1.sess.run(iterator.initializer)
-    ml_elm1.train(iterator, iterator_init_op, n_batches=n_batches)
-    iterator_init_op()
-    print("TRAIN perf")
-    ml_elm1.evaluate(tf_iterator=iterator)
-    print("TEST perf")
-    ml_elm1.evaluate(x_test, y_test)
-
-    # os.system('tensorboard --logdir=%s' % os.getcwd() + "/ml_elm")
-    # del ml_elm1
-    '''
-    elm1 = elm(784, 10)
-    elm1.add_layer(4000)
-    elm1.compile()
-    elm1.train(x_train, y_train)
-    acc = elm1.evaluate(x_test, y_test)
-    print(acc)
-    '''
-
-    '''
-    import hpelm
-    elm = hpelm.ELM(x_train.shape[1], 784, classification="r", accelerator="GPU", precision='single', batch=500)
-    elm.add_neurons(4000, 'sigm')
-    print(str(elm))
-    # Training model
-    elm.train(x_train, x_train, 'r')
-    y_train_predicted = elm.predict(x_train)
-    print('Training Error: ', (elm.error(x_train, y_train_predicted)))
-    '''
-
-
-if __name__ == '__main__':
-    main()
