@@ -52,7 +52,7 @@ class ELM(Fdnn):
 
             self.B_op = tf.assign(self.B, tf.matmul(tf.matrix_inverse(self.HH), self.HT), name='B_op')
 
-        self.sess.run([self.HH.initializer, self.HT.initializer])  # TODO in train
+        self.sess.run([self.HH.initializer, self.HT.initializer])
 
     def train(self, tf_iterator, n_batches=None):
 
@@ -190,6 +190,8 @@ class ELM(Fdnn):
             except tf.errors.OutOfRangeError:
                 break
 
+        print("Done")
+
         return np.asarray(y_out)
 
     def reset(self):
@@ -226,76 +228,3 @@ class ELM(Fdnn):
         '''
 
 
-def main():
-    import keras
-    import os
-    from keras.preprocessing.image import ImageDataGenerator
-    from sklearn.metrics import accuracy_score
-
-    mnist = keras.datasets.mnist
-    train, test = mnist.load_data(os.getcwd() + "/elm_tf_test" + "mnist.txt")
-    x_train, y_train = train
-    x_test, y_test = test
-    del train, test
-    y_train = keras.utils.to_categorical(y_train, num_classes=10)
-    y_test = keras.utils.to_categorical(y_test, num_classes=10)
-    x_train = x_train.reshape(-1, 28, 28, 1)
-    x_test = x_test.reshape(-1, 28 * 28)
-
-    input_size = 784
-    output_size = 10
-
-    # pre-processing pipeline
-
-    elm1 = ELM(input_size=input_size, output_size=output_size, l2norm=10)
-    elm1.add_layer(1, activation=tf.sigmoid)
-    elm1.compile()
-
-    batch_size = 500
-    n_epochs = 1
-
-    datagen = ImageDataGenerator(
-        # rotation_range=1,
-        width_shift_range=0.05,
-        height_shift_range=0.05
-    )
-
-    datagen.fit(x_train)
-
-    def gen():
-        n_it = 0
-        batches_per_epochs = len(x_train) // batch_size
-        for x, y in datagen.flow(x_train, y_train, batch_size=batch_size):
-            x = x.reshape(500, 28 * 28)
-            if n_it % 100 == 0:
-                print("generator iteration: %d" % n_it)
-            yield x, y
-            n_it += 1
-            if n_it >= batches_per_epochs * n_epochs:
-                break
-
-    data = tf.data.Dataset.from_generator(generator=gen,
-                                          output_shapes=((batch_size, 28 * 28,), (batch_size, 10,)),
-                                          output_types=(tf.float32, tf.float32))
-
-    iterator = data.make_one_shot_iterator()
-
-    elm1.train(iterator, n_batches=n_epochs * (len(x_train) // batch_size))
-    elm1.evaluate(x_test, y_test, batch_size=1000)
-    pred = elm1.predict(x_test, batch_size=1024)
-    acc = accuracy_score(y_test.argmax(1), pred.argmax(1))
-    print("Test Accuracy with scikit:", acc)
-
-    elm1.save(ckpt_path=os.getcwd() + '/elm')
-    tf.reset_default_graph()
-    del elm1
-    elm1 = ELM(input_size=input_size, output_size=output_size, l2norm=10, name='elm')
-
-    # load has to be fixed
-    # elm1.load(ckpt_path=os.getcwd()+ '/elm')
-
-    # elm1.evaluate(x_test, y_test, batch_size=1000)
-
-
-if __name__ == '__main__':
-    main()
