@@ -4,9 +4,9 @@
 Extreme Learning Machines are a particular neural-network and learning paradigm
 based on random weights and biases.
 
-It seems that these Networks are also a controversial topic in Literature due to the fact
+It seems that these networks are also a controversial topic in literature due to the fact
 that for some researchers are strongly based, or even a rip-off, of prior works such as
-random Projections.
+random projections.
 
 Academic allegations aside, these learning methods due to the fact that are trainable with
 almost negligible hardware and time resources are worth investigating.
