@@ -29,7 +29,7 @@ available.
 - Full multi-GPU support and model serving through TensorFlow.
 
 #### Examples available through Jupyter Notebooks:
-- ELM class # TODO
+- [ELM class](https://github.com/popcornell/tfelm/blob/pop_new/ELM_class_example.ipynb)
 - ML_ELM class # TODO
 
 
