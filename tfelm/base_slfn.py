@@ -50,19 +50,13 @@ class Fdnn(object):
             with tf.name_scope("hidden_layer_" + self.name + ("_%d" % layer)):
                 if self.w_initializer[layer] is 'default' or self.b_initializer[layer] is 'default':
                     init_w = tf.random_normal(shape=[self.n_neurons[layer], self.n_neurons[layer + 1]],
-                                              stddev=tf.sqrt(tf.div(2.,
-                                                                    tf.add(
-                                                                        tf.cast(self.n_neurons[layer - 1], 'float32'),
-                                                                        tf.cast(self.n_neurons[layer + 2],
-                                                                                'float32')))))
+                                              stddev=tf.sqrt(tf.div(2., tf.cast(self.n_neurons[layer - 1], 'float32'))))
+
 
                     if self.b_initializer[layer] is not None:
                         init_b = tf.random_normal(shape=[self.n_neurons[layer + 1]],
-                                                  stddev=tf.sqrt(tf.div(2.,
-                                                                        tf.add(tf.cast(self.n_neurons[layer - 1],
-                                                                                       'float32'),
-                                                                               tf.cast(self.n_neurons[layer + 2],
-                                                                                       'float32')))))
+                                                  stddev=tf.sqrt(tf.div(2., tf.cast(self.n_neurons[layer - 1], 'float32'))))
+
 
                         self.Hb.append(tf.Variable(init_b, trainable=False))
                     else:
