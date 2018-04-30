@@ -71,7 +71,8 @@ def load_SVHN():
 
 
 def gen_keras_pipeline(x_train, y_train, x_test, y_test, size, channels, batch_size= 1000):
-    """Input pipeling for keras image preprocessing"""
+    """Input pipeling for keras image preprocessing
+    Be aware of using same generator for train and test set when using data augmentation"""
 
     from keras.preprocessing.image import ImageDataGenerator
     # pre-processing pipeline
