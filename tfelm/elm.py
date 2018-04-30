@@ -60,7 +60,7 @@ class ELM(Fdnn):
 
         t0 = time.time()
 
-        batch = 1
+        batch = 0
         while True:
             try:
                 start = time.time()
@@ -129,8 +129,7 @@ class ELM(Fdnn):
             dataset = tf.data.Dataset.from_tensor_slices((self.x, self.y)).batch(batch_size=batch_size)
             tf_iterator = dataset.make_initializable_iterator()
 
-            self.sess.run(tf_iterator.initializer, feed_dict={self.x: x,  # TODO is there a better way ?
-                                                              self.y: y})
+            self.sess.run(tf_iterator.initializer, feed_dict={self.x: x, self.y: y})
 
         print("Evaluating network performance")
 
@@ -184,7 +183,7 @@ class ELM(Fdnn):
         y_out = []
         while True:
             try:
-                x_batch = self.sess.run(next_batch)
+                x_batch, _ = self.sess.run(next_batch)
                 y_out.extend(self.sess.run(self.y_out, feed_dict={self.x: x_batch}))
 
             except tf.errors.OutOfRangeError:
