@@ -50,19 +50,19 @@ class Fdnn(object):
             with tf.name_scope("hidden_layer_" + self.name + ("_%d" % layer)):
                 if self.w_initializer[layer] is 'default' or self.b_initializer[layer] is 'default':
                     init_w = tf.random_normal(shape=[self.n_neurons[layer], self.n_neurons[layer + 1]],
-                                              stddev=tf.sqrt(tf.div(2., tf.cast(self.n_neurons[layer], 'float32'))))
+                                              stddev=3. * tf.sqrt(tf.div(1., self.n_neurons[layer])))
 
 
                     if self.b_initializer[layer] is not None:
                         init_b = tf.random_normal(shape=[self.n_neurons[layer + 1]],
-                                                  stddev=tf.sqrt(tf.div(2., tf.cast(self.n_neurons[layer], 'float32'))))
+                                                  stddev=1.)
 
 
-                        self.Hb.append(tf.Variable(init_b, trainable=False))
+                        self.Hb.append(tf.Variable(init_b, dtype=tf.float32, name= 'Hb', trainable=False))
                     else:
                         self.Hb.append(None)
 
-                    self.Hw.append(tf.Variable(init_w, trainable=False))
+                    self.Hw.append(tf.Variable(init_w, dtype=tf.float32, name='Hw', trainable=False))
 
                 else:
                     print("Using custom inizialization for ELM: {} and layer number {}/{}".format(self.name, layer + 1,

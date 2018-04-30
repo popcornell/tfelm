@@ -198,7 +198,7 @@ def batch_normalization(train_dataset, test_dataset):
 
 ######################################################################################################################
 # Get dataset
-x_train, x_test, y_train, y_test, img_size, img_channels = load_SVHN()
+x_train, x_test, y_train, y_test, img_size, img_channels = load_mnist()
 
 # Data scaler
 #from sklearn.preprocessing import StandardScaler
@@ -213,7 +213,7 @@ output_size = 10
 n_neurons = (1000, 5000, 8000, 15000,)
 batch_size = 500
 n_epochs = 1
-repeate_run = 5
+repeate_run = 1
 norm = repeate_run*(10**0,)
 
 #Orthogonal init
@@ -221,7 +221,7 @@ norm = repeate_run*(10**0,)
 #uni_b = tf.variance_scaling_initializer(distribution='uniform')
 
 
-init = (['hpelm_init', 'hpelm_init'],)
+init = (['default', 'default'],)
 
 ######################################################################################################################
 start = time.time()
@@ -229,7 +229,7 @@ start = time.time()
 # use gen_pipeline() or keras_gen_pipeline()
 train_dataset , test_dataset = gen_pipeline(x_train, y_train, x_test, y_test, img_size, img_channels, batch_size)
 # compute the batch normalization over the dataset
-train_dataset, test_dataset = batch_normalization(train_dataset, test_dataset)
+#train_dataset, test_dataset = batch_normalization(train_dataset, test_dataset)
 
 # Create iterator from dataset structure
 iterator = tf.data.Iterator.from_structure(train_dataset.output_types,
