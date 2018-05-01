@@ -27,12 +27,16 @@ def ensemble_prediction():
         test_acc = test_acc.mean()
         test_accuracies.append(test_acc)
 
-        msg = "Network: {0}, Accuracy testset: {1:.6f}"
-        print(msg.format(i, test_acc))
+        train_acc = correct_prediction(y_train, y_train_predicted[i])
+        train_acc = train_acc.mean()
+        train_accuracies.append(train_acc)
+
+        msg = "Network: {0}, Accuracy on Training-Set: {1:.6f}, Test-Set: {2:.6f}"
+        print(msg.format(i, train_acc, test_acc))
 
         pred_labels = np.array(y_test_predicted)
 
-    return pred_labels, test_accuracies
+    return pred_labels, test_accuracies, train_accuracies
 
 
 def load_cifar():
@@ -106,10 +110,10 @@ x_test = prescaler.transform(x_test)
 # Hyperparameters
 input_size = img_size**2 * img_channels
 output_size = 10
-n_neurons = 8000
+n_neurons = 5000
 batch_size = 1000
 n_epochs = 1
-n_estimator = 20
+n_estimator = 40
 norm = 10**3
 init = ['default', 'default']
 act = (tf.sigmoid, tf.tanh)
@@ -132,6 +136,7 @@ test_init_op = iterator.make_initializer(test_dataset)
 # Training networks
 print()
 print("Bagging %d ELM classificator\n" % n_estimator)
+y_train_predicted = []
 y_test_predicted = []
 tstart = time.time()
 for i in range(n_estimator):
@@ -143,6 +148,8 @@ for i in range(n_estimator):
 
     model.sess.run(train_init_op)
     model.train(iterator, n_batches=n_epochs * (len(x_train) // batch_size))
+    model.sess.run(train_init_op)
+    y_train_predicted.append(model.predict(tf_iterator=iterator, batch_size=batch_size))
 
     model.sess.run(test_init_op)
     y_test_predicted.append(model.predict(tf_iterator= iterator, batch_size=batch_size))
@@ -155,7 +162,7 @@ print("Training done in ", (time.time() - tstart), "seconds!!")
 print("###############################################################################################")
 
 # pred labels on test-set
-pred_labels, test_accuracies = ensemble_prediction()
+pred_labels, test_accuracies, train_accuracies = ensemble_prediction()
 
 print("\nMean test-set accuracy: {0:.4f}".format(np.mean(test_accuracies)))
 print("Min test-set accuracy:  {0:.4f}".format(np.min(test_accuracies)))
@@ -204,3 +211,34 @@ hard_voting_acc = (hard_voting_cls_pred == y_test.argmax(1)).mean()
 print("Hard voting accuracy: ", hard_voting_acc * 100)
 print("Mean accuracy: ", ensemble_acc * 100)
 print("###############################################################################################\n")
+
+######################################################################################################################
+######################################################################################################################
+# 1-layer STACKING
+# Build aggregator on top of predicted value
+print('Building ELM aggregator on top of estim values')
+train_agg = np.swapaxes(np.array(y_train_predicted), 0, 1).reshape(-1, n_estimator*output_size)
+test_agg = np.swapaxes(np.array(pred_labels), 0, 1).reshape(-1, n_estimator*output_size)
+
+agg_scaler = StandardScaler()
+train_agg_scaled = agg_scaler.fit_transform(train_agg)
+test_agg_scaled = agg_scaler.transform(test_agg)
+
+
+print('Aggregator hypar: neurons= 2000')
+model = ELM(input_size=n_estimator*output_size, output_size=output_size, l2norm=10**0)
+model.add_layer(2000, activation=tf.sigmoid, w_init='default', b_init='default')
+model.compile()
+model.fit(train_agg_scaled, y_train, batch_size= 1000)
+agg_accuracy = model.evaluate(x=test_agg_scaled, y=y_test, batch_size=1000)
+del model
+
+print("###############################################################################################")
+print('RECAP:')
+print("Single net mean-accuracy: {0:.3f} % ".format(np.mean(test_accuracies)))
+print("Ensemble mean accuracy: {0:.3f} % " .format(ensemble_acc * 100))
+print("Hard voting ensemble accuracy: {0:.3f} % " .format(hard_voting_acc * 100))
+print('Aggregator accuracy: {0:.3f} % ' .format(agg_accuracy*100))
+
+
+
