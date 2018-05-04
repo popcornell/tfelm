@@ -43,7 +43,8 @@ class ELM(Fdnn):
                                               tf.cast(self.l2norm, tf.float32)),
                                   name='HH', trainable=False)
 
-            self.HT = tf.Variable(tf.zeros([self.n_neurons[self.n_hidden_layer], self.n_neurons[-1]]), name='HT', trainable=False)
+            self.HT = tf.Variable(tf.zeros([self.n_neurons[self.n_hidden_layer], self.n_neurons[-1]]), name='HT',
+                                  trainable=False)
 
             self.HH_HT_op = tf.group(
                 tf.assign_add(self.HH, tf.matmul(self.H[- 1], self.H[- 1], transpose_a=True)),
@@ -82,6 +83,7 @@ class ELM(Fdnn):
                 break
 
         self.sess.run(self.B_op)
+
         print("Training of ELM {} ended in {}:{}:{:5f}".format(self.name, math.floor((time.time() - t0) // 3600),
                                                                math.floor((time.time() - t0) % 3600 // 60),
                                                                ((time.time() - t0) % 3600 % 60)))
@@ -226,5 +228,3 @@ class ELM(Fdnn):
 
         print("Model restored.")
         '''
-
-
