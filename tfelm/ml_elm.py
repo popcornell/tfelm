@@ -185,6 +185,8 @@ class ML_ELM(ELM):
 
         self.sess.run(B_op)
 
+
+
         print("Training of AE {} ended in {}:{}:{:5f}".format(self.name, math.floor((time.time() - t0) // 3600),
                                                               math.floor((time.time() - t0) % 3600 // 60),
                                                               ((time.time() - t0) % 3600 % 60)))
