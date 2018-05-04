@@ -47,16 +47,35 @@ class Fdnn(object):
         assert self.n_hidden_layer is not 0, "Before compiling the network at least one hidden layer should be created"
         for layer in range(self.n_hidden_layer):
 
+
+
             with tf.name_scope("hidden_layer_" + self.name + ("_%d" % layer)):
                 if self.w_initializer[layer] is 'default' or self.b_initializer[layer] is 'default':
-                    init_w = tf.random_normal(shape=[self.n_neurons[layer], self.n_neurons[layer + 1]],
-                                              stddev=tf.sqrt(tf.div(2., tf.cast(self.n_neurons[layer - 1], 'float32'))))
 
+                    if layer == 0:
+                        init_w = tf.random_normal(shape=[self.n_neurons[layer], self.n_neurons[layer + 1]],
+                                                  stddev=tf.sqrt(
+                                                      tf.div(2., tf.cast(self.n_neurons[layer], 'float32'))))
+                    else:
+
+                        init_w = tf.random_normal(shape=[self.n_neurons[layer], self.n_neurons[layer + 1]],
+                                                  stddev=tf.sqrt(
+                                                      tf.div(2., tf.cast(self.n_neurons[layer - 1], 'float32'))))
 
                     if self.b_initializer[layer] is not None:
-                        init_b = tf.random_normal(shape=[self.n_neurons[layer + 1]],
-                                                  stddev=tf.sqrt(tf.div(2., tf.cast(self.n_neurons[layer - 1], 'float32'))))
 
+                        if layer == 0:
+                            init_b = tf.random_normal(shape=[self.n_neurons[layer + 1]],
+                                                      stddev=tf.sqrt(
+                                                          tf.div(2.,
+                                                                 tf.cast(self.n_neurons[layer], 'float32'))))
+
+                        else:
+
+                            init_b = tf.random_normal(shape=[self.n_neurons[layer + 1]],
+                                                      stddev=tf.sqrt(
+                                                          tf.div(2.,
+                                                                 tf.cast(self.n_neurons[layer - 1], 'float32'))))
 
                         self.Hb.append(tf.Variable(init_b, trainable=False))
                     else:
