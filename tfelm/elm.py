@@ -83,7 +83,6 @@ class ELM(Fdnn):
                 break
 
         self.sess.run(self.B_op)
-
         print("Training of ELM {} ended in {}:{}:{:5f}".format(self.name, math.floor((time.time() - t0) // 3600),
                                                                math.floor((time.time() - t0) % 3600 // 60),
                                                                ((time.time() - t0) % 3600 % 60)))
@@ -103,14 +102,12 @@ class ELM(Fdnn):
         dataset = tf.data.Dataset.from_tensor_slices((self.x, self.y)).batch(batch_size=batch_size)
         iterator = dataset.make_initializable_iterator()
 
-        self.sess.run(iterator.initializer, feed_dict={self.x: x,  # TODO is there a better way ?
-                                                       self.y: y})
+        self.sess.run(iterator.initializer, feed_dict={self.x: x, self.y: y})
 
         self.train(iterator, n_batches)
 
         # re-initialize the iterator
-        self.sess.run(iterator.initializer, feed_dict={self.x: x,
-                                                       self.y: y})
+        self.sess.run(iterator.initializer, feed_dict={self.x: x, self.y: y})
 
         if self.type is 'c':
             train_perf = self.evaluate(tf_iterator=iterator, metric='acc')
@@ -131,19 +128,20 @@ class ELM(Fdnn):
             dataset = tf.data.Dataset.from_tensor_slices((self.x, self.y)).batch(batch_size=batch_size)
             tf_iterator = dataset.make_initializable_iterator()
 
-            self.sess.run(tf_iterator.initializer, feed_dict={self.x: x,  # TODO is there a better way ?
-                                                              self.y: y})
+            self.sess.run(tf_iterator.initializer, feed_dict={self.x: x, self.y: y})
 
         print("Evaluating network performance")
 
         next_batch = tf_iterator.get_next()
 
         if metric is 'acc':
-            correct_prediction = tf.equal(tf.argmax(self.y, 1), tf.argmax(self.y_out, 1))
-            eval_metric = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+            with tf.name_scope('accuracy'):
+                correct_prediction = tf.equal(tf.argmax(self.y, 1), tf.argmax(self.y_out, 1))
+                eval_metric = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 
         elif metric is 'mse':
-            eval_metric = tf.reduce_mean(tf.squared_difference(self.y_out, self.y, name='mse'))
+            with tf.name_scope('mse'):
+                eval_metric = tf.reduce_mean(tf.squared_difference(self.y_out, self.y, name='mse'))
 
         else:
             ValueError("Invalid performance metric, use mse or acc")
@@ -163,7 +161,7 @@ class ELM(Fdnn):
         if metric is 'acc':
             print('Accuracy: %.7f' % mean_metric)
         elif metric is 'mse':
-            print('MSE: .7f' % mean_metric)
+            print('MSE: %.7f' % mean_metric)
 
         return mean_metric
 
@@ -186,7 +184,7 @@ class ELM(Fdnn):
         y_out = []
         while True:
             try:
-                x_batch = self.sess.run(next_batch)
+                x_batch, _ = self.sess.run(next_batch)
                 y_out.extend(self.sess.run(self.y_out, feed_dict={self.x: x_batch}))
 
             except tf.errors.OutOfRangeError:
