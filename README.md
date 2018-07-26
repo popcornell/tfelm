@@ -26,8 +26,7 @@ available.
 
 #### Examples available through Jupyter Notebooks:
 - [ELM class](https://github.com/popcornell/tfelm/blob/pop_new/ELM_class_example.ipynb)
-- ML_ELM class # TODO
-
+- [ML_ELM class](https://github.com/popcornell/tfelm/blob/pop_new/ML_ELM_class_example.ipynb)
 
 #### More on ELMs vs MLPs
 
