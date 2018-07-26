@@ -42,11 +42,4 @@ are less computationally intensive in the feedfoward phase.
 ELMs, on the other hand, have trivial training time but produce larger networks which place more
 computational burden on platforms when they become part of an actual application.
 
-#### Authors
 
-<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
-<!-- prettier-ignore -->
-|[<img src="https://avatars0.githubusercontent.com/u/18726713?s=460&v=4https://avatars0.githubusercontent.com/u/18726713?s=460&v=4" height='150px' width="100px;"/><br /><sub><b>Samuele_Cornell</b></sub>]
- [<img src="https://avatars0.githubusercontent.com/u/36079710?s=460&v=4" height='150px' width="100px;"/><br /><sub><b>Andrea Castellani</b></sub>]
-
-<!-- ALL-CONTRIBUTORS-LIST:END -->
