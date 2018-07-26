@@ -1,17 +1,13 @@
 # TF-ELM
 **An experimental API for Extreme Learning machines Neural Networks made with TensorFlow.**
 
-Extreme Learning Machines are a particular neural-network and learning paradigm
+Extreme Learning Machines are a particular machine learning paradigm
 based on random weights and biases.
 
-It seems that these networks are also a controversial topic in literature due to the fact
-that for some researchers are strongly based, or even a rip-off, of prior works such as
-random projections.
+This class of machine-learning techniques because are based upon random projections,
+are trainable with almost negligible hardware and time resources.
 
-Academic allegations aside, these learning methods due to the fact that are trainable with
-almost negligible hardware and time resources these networks deserve to be studied.
-
-In fact, in some contexts, their performance can be comparable to classical Multi Layer Perceptron Networks with the advantage of mantaining negligible training resources.
+In some contexts, their performance can be comparable to classical Multi Layer Perceptron Networks with the advantage of mantaining negligible training resources.
 
 This makes these networks ideally suited for fast-prototyping and for certain big-data problems where a result should be obtained in a
 reasonable time and/or computing resources for more training-intensive but better models aren’t
