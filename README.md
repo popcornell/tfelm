@@ -28,8 +28,11 @@ available.
 - [ELM class](https://github.com/popcornell/tfelm/blob/pop_new/ELM_class_example.ipynb)
 - [ML_ELM class](https://github.com/popcornell/tfelm/blob/pop_new/ML_ELM_class_example.ipynb)
 
+---
+
 #### If you use this work, please cite our conference paper "tfelm: a TensorFlow Toolbox for the Investigation of ELMs and MLPs Performance" in [Proceedings of the 2018 International Conference on Artificial Intelligence](https://csce.ucmss.com/cr/books/2018/LFS/CSREA2018/ICA4128.pdf)
 
+---
 
 #### More on ELMs vs MLPs
 
